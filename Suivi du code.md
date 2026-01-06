@@ -16,3 +16,4 @@ modifie la couleur du bouton "choisir un fichier". supprime le fond blanc. il ut
 tu as raison remplaçons le texte par un icone de chargement
 et mets le bouton à droite de l'écran
 
+Nous allons créer un objet "Pion". Il s'agit d'une image de petite taille qui se superposera
