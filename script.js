@@ -2,22 +2,33 @@
 const imageUpload = document.getElementById('imageUpload');
 const viewerImage = document.getElementById('viewerImage');
 const container = document.getElementById('imageContainer');
+const resetBtn = document.getElementById('resetBtn'); // Nouveau bouton
 
 // État de l'application
 let state = {
     scale: 1,
     panning: false,
-    pointX: 0, // Décalage horizontal du centre de l'image par rapport au centre de l'écran
-    pointY: 0, // Décalage vertical du centre de l'image par rapport au centre de l'écran
+    pointX: 0,
+    pointY: 0,
     startX: 0,
     startY: 0
 };
 
 // Fonction pour mettre à jour la transformation CSS
 function updateTransform() {
-    // On applique le centrage de base (-50%, -50%) PUIS nos modifications
     viewerImage.style.transform = `translate(-50%, -50%) translate(${state.pointX}px, ${state.pointY}px) scale(${state.scale})`;
 }
+
+// Fonction de réinitialisation (Reset)
+function resetView() {
+    state.scale = 1;
+    state.pointX = 0;
+    state.pointY = 0;
+    updateTransform();
+}
+
+// Écouteur pour le bouton Reset
+resetBtn.addEventListener('click', resetView);
 
 // 1. Gestion du chargement de l'image
 imageUpload.addEventListener('change', function(e) {
@@ -28,11 +39,8 @@ imageUpload.addEventListener('change', function(e) {
             viewerImage.src = event.target.result;
             viewerImage.style.display = 'block';
             
-            // Réinitialisation de l'état
-            state.scale = 1;
-            state.pointX = 0;
-            state.pointY = 0;
-            updateTransform();
+            // On réinitialise la vue quand une nouvelle image est chargée
+            resetView();
         };
         reader.readAsDataURL(file);
     }
@@ -40,19 +48,16 @@ imageUpload.addEventListener('change', function(e) {
 
 // 2. Gestion du Zoom (Molette)
 container.addEventListener('wheel', function(e) {
-    e.preventDefault(); // Empêche le scroll de la page
+    e.preventDefault();
 
     const zoomIntensity = 0.1;
-    const direction = e.deltaY < 0 ? 1 : -1; // Haut = Zoom in, Bas = Zoom out
+    const direction = e.deltaY < 0 ? 1 : -1;
     const factor = 1 + (direction * zoomIntensity);
 
-    // Limites de zoom (optionnel, pour éviter de trop dézoomer/zoomer)
     const newScale = state.scale * factor;
+    // Limites de zoom
     if (newScale < 0.1 || newScale > 20) return;
 
-    // Logique : Zoomer vers le centre de l'écran.
-    // Si l'image est décalée (pointX, pointY), ce décalage doit aussi être "zoomé"
-    // pour que le point sous le centre de l'écran reste sous le centre.
     state.pointX *= factor;
     state.pointY *= factor;
     state.scale = newScale;
@@ -62,7 +67,10 @@ container.addEventListener('wheel', function(e) {
 
 // 3. Gestion du Déplacement (Drag)
 container.addEventListener('mousedown', function(e) {
-    e.preventDefault(); // Empêche le comportement de glisser-déposer natif du navigateur
+    // Si on clique sur l'image (ou le conteneur vide), on commence le drag
+    if (e.button !== 0) return; // Seulement clic gauche
+
+    e.preventDefault();
     state.panning = true;
     state.startX = e.clientX - state.pointX;
     state.startY = e.clientY - state.pointY;
@@ -73,8 +81,6 @@ window.addEventListener('mousemove', function(e) {
     if (!state.panning) return;
     
     e.preventDefault();
-    // Calcul de la nouvelle position
-    // La position actuelle est la position de la souris moins le point de départ relatif
     state.pointX = e.clientX - state.startX;
     state.pointY = e.clientY - state.startY;
 

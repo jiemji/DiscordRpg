@@ -10,3 +10,9 @@ L'image peut être tiré avec la souris de droite à gauche. L'utilisateur doit 
 - S'il tire le curseur vers le haut, le centre de l'image se déplace vers le haut.
 - S'il tire le curseur vers le bas, le centre de l'image se déplace vers le bas.
 Le déplacement s'arrête quand l'utilisateur relache le bouton gauche de la souris
+
+je voudrais que le bouton pour charger la carte soit sur un bandeau anthracite (et légerement transparent) qui prend la totalité de la largeur d'écran.
+modifie la couleur du bouton "choisir un fichier". supprime le fond blanc. il utilisera le fond du bandeau. mets le texte en verts fluos
+tu as raison remplaçons le texte par un icone de chargement
+et mets le bouton à droite de l'écran
+
