@@ -1,0 +1,51 @@
+/* Réinitialisation de base */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Empêche le scroll du navigateur */
+    background-color: #2c3e50; /* Couleur de fond sombre pour le contraste */
+    font-family: sans-serif;
+}
+
+/* Zone de contrôle en haut à gauche */
+#controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 100; /* Au-dessus de l'image */
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Le conteneur occupe tout l'écran */
+#imageContainer {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab; /* Indique que l'élément peut être attrapé */
+}
+
+#imageContainer:active {
+    cursor: grabbing; /* Indique l'action de saisir */
+}
+
+/* * L'image est positionnée de manière absolue pour faciliter 
+ * les calculs de translation depuis le centre.
+ * transform: translate(-50%, -50%) centre l'image sur elle-même.
+ */
+#viewerImage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center center; /* Le point de pivot est le centre */
+    transform: translate(-50%, -50%) translate(0px, 0px) scale(1);
+    max-width: none; /* L'image peut dépasser la taille de l'écran */
+    display: none; /* Masqué tant qu'aucune image n'est chargée */
+    user-select: none; /* Empêche la sélection du texte/image */
+}
