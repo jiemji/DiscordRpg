@@ -70,8 +70,55 @@
             </svg>
         </button>
 
+        <button id="helpBtn" class="btn-icon push-right" title="Aide & Contrôles">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+        </button>
+
         <input type="file" id="imageUpload" accept="image/*">
         <input type="file" id="pawnUpload" accept="image/*">
+    </div>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Guide des Contrôles</h2>
+            
+            <div class="help-section">
+                <h3>Navigation</h3>
+                <ul>
+                    <li><strong>Bouger la carte :</strong> Clic Gauche maintenu + Glisser</li>
+                    <li><strong>Zoomer :</strong> Molette de la souris</li>
+                    <li><strong>Reset Vue :</strong> Bouton <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg></li>
+                </ul>
+            </div>
+
+            <div class="help-section">
+                <h3>Pions</h3>
+                <ul>
+                    <li><strong>Déplacer :</strong> Glisser-Déposer</li>
+                    <li><strong>Redimensionner :</strong> Tenir le Clic Gauche sur le pion + Molette</li>
+                    <li><strong>Supprimer :</strong> Tenir le Clic Gauche sur le pion + Touche <code>Suppr</code></li>
+                    <li><strong>Changer Couleur :</strong> Double Clic sur le pion</li>
+                </ul>
+            </div>
+
+            <div class="help-section">
+                <h3>Brouillard de Guerre</h3>
+                <ul>
+                    <li><strong>Activer :</strong> Bouton <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></li>
+                    <li><strong>Dessiner :</strong> Mode Édition (Stylo) + Clic Gauche</li>
+                    <li><strong>Dissipation Auto :</strong> Le brouillard se dissipe automatiquement autour des pions lorsqu'on les bouge.</li>
+                    <li><strong>Taille des pions :</strong> Au chargement, les pions font 60px de diamètre. Prenez-le en compte lorsque vous créerez les maps. Une image en 1920 sur 1080 correspond environ à un rectangle de 33m sur 18m.
+                    Il est possible de modifier la taille des pions si besoin</li>
+                </ul>
+            </div>
+            
+            <p class="footnote">Sauvegarde automatique activée dans ce navigateur.</p>
+        </div>
     </div>
 
     <div id="imageContainer">
