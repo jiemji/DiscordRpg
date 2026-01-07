@@ -19,21 +19,27 @@ body, html {
     background-color: rgba(45, 45, 45, 0.95);
     box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     z-index: 1000;
+    
+    /* Flexbox pour l'organisation Gauche / Centre / Droite */
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between; /* Espace entre les groupes */
     align-items: center;
     
-    /* CORRECTION ICI : Inclure le padding dans la largeur pour éviter le dépassement */
     box-sizing: border-box; 
-    padding-left: 20px;
-    padding-right: 20px;
-    
-    gap: 15px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
-/* Classe utilitaire pour pousser un élément tout à droite */
-.push-right {
-    margin-left: auto;
+/* Groupes de boutons */
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espace entre boutons d'un même groupe */
+}
+
+/* Ajustements spécifiques si besoin (largeur min pour le centre, etc.) */
+.control-group.center {
+    justify-content: center;
 }
 
 .separator {
@@ -89,11 +95,11 @@ input[type="file"] {
     display: none;
 }
 
-/* --- MODAL (POP-UP AIDE) --- */
+/* --- MODALES (Aide & Scènes) --- */
 .modal {
-    display: none; /* Caché par défaut */
+    display: none;
     position: fixed; 
-    z-index: 2000; /* Au-dessus de tout */
+    z-index: 2000; 
     left: 0;
     top: 0;
     width: 100%; 
@@ -104,12 +110,14 @@ input[type="file"] {
 
 .modal-content {
     background-color: #2c3e50;
-    margin: 10% auto;
+    margin: 5% auto; /* Un peu plus haut */
     padding: 30px;
     border: 2px solid #39ff14;
     border-radius: 10px;
     width: 80%;
     max-width: 600px;
+    max-height: 80vh; /* Scroll si trop long */
+    overflow-y: auto;
     color: #ecf0f1;
     box-shadow: 0 0 30px rgba(57, 255, 20, 0.2);
     position: relative;
@@ -130,10 +138,8 @@ input[type="file"] {
     line-height: 20px;
 }
 
-.close-modal:hover,
-.close-modal:focus {
+.close-modal:hover {
     color: #39ff14;
-    text-decoration: none;
 }
 
 .help-section {
@@ -141,32 +147,57 @@ input[type="file"] {
     border-bottom: 1px solid rgba(255,255,255,0.1);
     padding-bottom: 10px;
 }
+.help-section h3 { color: #39ff14; margin-top: 0; }
+.help-section ul { padding-left: 20px; }
+.help-section li { margin-bottom: 8px; line-height: 1.5; }
 
-.help-section h3 {
-    color: #39ff14;
-    margin-top: 0;
-}
-
-.help-section ul {
-    list-style-type: none;
-    padding-left: 10px;
-}
-
-.help-section li {
+/* Styles spécifiques à la liste de scènes */
+.scene-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
     margin-bottom: 8px;
-    font-size: 14px;
-    line-height: 1.5;
+    border-radius: 5px;
+    border: 1px solid transparent;
+}
+.scene-item:hover {
+    border-color: #39ff14;
+    background: rgba(57, 255, 20, 0.05);
+}
+.scene-name {
+    font-weight: bold;
+    flex-grow: 1;
+}
+.scene-actions button {
+    margin-left: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    border: 1px solid #aaa;
+    background: transparent;
+    color: #fff;
+    border-radius: 3px;
+}
+.scene-actions button.load-btn {
+    border-color: #39ff14;
+    color: #39ff14;
+}
+.scene-actions button.load-btn:hover {
+    background-color: #39ff14;
+    color: #2c3e50;
+}
+.scene-actions button.delete-btn {
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+.scene-actions button.delete-btn:hover {
+    background-color: #e74c3c;
+    color: white;
 }
 
-.footnote {
-    font-size: 12px;
-    color: #95a5a6;
-    text-align: center;
-    margin-top: 20px;
-    font-style: italic;
-}
 
-/* Conteneur principal */
+/* Carte & Pions */
 #imageContainer {
     width: 100vw;
     height: 100vh;
@@ -178,23 +209,17 @@ input[type="file"] {
     position: relative;
     cursor: grab;
 }
+#imageContainer.drawing-mode { cursor: crosshair; }
 
-#imageContainer.drawing-mode {
-    cursor: crosshair;
-}
-
-/* Wrapper de la carte */
 #mapWrapper {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform-origin: center center;
     transform: translate(-50%, -50%) scale(1);
     display: none;
     box-shadow: 0 0 50px rgba(0,0,0,0.5);
 }
 
-/* 1. L'image de fond */
 #viewerImage {
     display: block;
     max-width: none;
@@ -203,7 +228,6 @@ input[type="file"] {
     z-index: 1; 
 }
 
-/* 2. Les Pions */
 .pawn {
     position: absolute;
     border-radius: 50%;
@@ -216,25 +240,15 @@ input[type="file"] {
     user-select: none;
     transition: border-color 0.2s ease, width 0.1s ease, height 0.1s ease;
 }
+.pawn:active { cursor: grabbing; z-index: 11; }
 
-.pawn:active {
-    cursor: grabbing;
-    z-index: 11;
-}
-
-/* 3. Le Brouillard */
 #fogCanvas {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     z-index: 20;
     pointer-events: none;
     opacity: 0.95;
     mix-blend-mode: multiply;
 }
-
-.editing-fog #fogCanvas {
-    pointer-events: auto;
-}
+.editing-fog #fogCanvas { pointer-events: auto; }
