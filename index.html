@@ -3,18 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visionneuse d'Image Interactive</title>
+    <title>Discord RPG - Table Virtuelle</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="controls">
         
-        <label for="imageUpload" class="btn-icon" title="Charger une image">
+        <label for="imageUpload" class="btn-icon" title="Charger la Carte (Fond)">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
                 <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+        </label>
+
+        <label for="pawnUpload" class="btn-icon" title="Ajouter un Pion">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
             </svg>
         </label>
         
@@ -25,11 +34,51 @@
             </svg>
         </button>
 
+        <div class="separator"></div>
+
+        <button id="toggleFogVisBtn" class="btn-icon active" title="Afficher/Masquer le Brouillard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        </button>
+
+        <button id="toggleFogEditBtn" class="btn-icon" title="Mode Édition Brouillard (Dessin)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+        </button>
+
+        <button id="fogRevealBtn" class="btn-icon hidden" title="Révéler (Gomme)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="4"></circle>
+            </svg>
+        </button>
+
+        <button id="fogHideBtn" class="btn-icon hidden" title="Masquer (Pinceau)">
+             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 21h20"></path>
+                <path d="M12 3a9 9 0 0 0-9 9 9.75 9.75 0 0 0 1.25 4.5L5 21h14l.75-4.5A9.75 9.75 0 0 0 21 12a9 9 0 0 0-9-9z"></path>
+            </svg>
+        </button>
+        
+        <button id="fogResetBtn" class="btn-icon hidden" title="Remplir tout le brouillard">
+             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            </svg>
+        </button>
+
         <input type="file" id="imageUpload" accept="image/*">
+        <input type="file" id="pawnUpload" accept="image/*">
     </div>
 
     <div id="imageContainer">
-        <img id="viewerImage" src="" alt="" draggable="false">
+        <div id="mapWrapper">
+            <img id="viewerImage" src="" alt="" draggable="false">
+            <canvas id="fogCanvas"></canvas>
+        </div>
     </div>
 
     <script src="script.js"></script>
