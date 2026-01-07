@@ -16,21 +16,28 @@ body, html {
     left: 0;
     width: 100%;
     height: 60px;
-    background-color: rgba(45, 45, 45, 0.9);
+    background-color: rgba(45, 45, 45, 0.95);
     box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     z-index: 1000;
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    padding-left: 20px; 
-    box-sizing: border-box; 
-    gap: 15px; 
+    padding-left: 20px;
+    gap: 15px;
 }
 
-/* Masquer l'input natif */
-input[type="file"] { display: none; }
+.separator {
+    width: 1px;
+    height: 30px;
+    background: rgba(255,255,255,0.2);
+    margin: 0 5px;
+}
 
-/* Style des boutons */
+input[type="file"] {
+    display: none;
+}
+
+/* Boutons */
 .btn-icon {
     display: flex;
     justify-content: center;
@@ -43,80 +50,106 @@ input[type="file"] { display: none; }
     background-color: transparent;
     border: 2px solid #39ff14; 
     border-radius: 5px;
-    transition: all 0.3s ease; 
-    font-family: inherit;
-    font-size: 100%;
-    line-height: 1.15;
-    margin: 0;
-    text-transform: none;
-    -webkit-appearance: button;
+    transition: all 0.2s ease; 
 }
-.btn-icon svg { width: 24px; height: 24px; stroke: currentColor; }
+
+.btn-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+}
+
 .btn-icon:hover {
     background-color: rgba(57, 255, 20, 0.1); 
     box-shadow: 0 0 15px rgba(57, 255, 20, 0.4); 
     transform: scale(1.05);
 }
-.btn-icon:active { transform: scale(0.95); }
 
-/* Conteneur de l'image (La scène) */
+.btn-icon:active {
+    transform: scale(0.95);
+}
+
+.btn-icon.active {
+    background-color: #39ff14;
+    color: #2c3e50;
+    box-shadow: 0 0 10px #39ff14;
+}
+
+.btn-icon.hidden {
+    display: none;
+}
+
+/* Conteneur principal */
 #imageContainer {
     width: 100vw;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    cursor: grab;
-    position: relative; 
-    z-index: 1;
+    background-color: #1a1a1a;
     overflow: hidden;
+    position: relative;
+    cursor: grab;
 }
 
-#imageContainer:active {
-    cursor: grabbing;
+#imageContainer.drawing-mode {
+    cursor: crosshair;
 }
 
-/* NOUVEAU : Le calque qui bouge (contient image + pions) */
-#mapLayer {
+/* Wrapper de la carte (Groupe tout le contenu transformable) */
+#mapWrapper {
     position: absolute;
     top: 50%;
     left: 50%;
     transform-origin: center center;
-    /* On initialise la transfo ici, mais elle sera gérée par JS */
-    transform: translate(-50%, -50%) translate(0px, 0px) scale(1);
-    
-    /* Le calque prend la taille de son contenu (l'image) */
-    display: inline-block; 
-    width: auto;
-    height: auto;
+    transform: translate(-50%, -50%) scale(1);
+    display: none; /* Masqué au départ */
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
 }
 
-/* L'image elle-même */
+/* 1. L'image de fond (Carte) */
 #viewerImage {
-    display: block; /* Évite les espaces fantômes sous l'image */
+    display: block;
     max-width: none;
-    pointer-events: none; /* L'image ne capture pas les clics */
     user-select: none;
-    /* L'image définit la taille du mapLayer */
+    pointer-events: none;
+    z-index: 1; 
 }
 
-/* NOUVEAU : Style du Pion */
+/* 2. Les Pions (Tokens) */
 .pawn {
     position: absolute;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%; /* Rond */
-    border: 3px solid #000; /* Rebord noir épais */
-    box-sizing: border-box; /* La bordure est incluse dans les 40px */
+    /* La taille est gérée par JS (PAWN_DIAMETER) */
+    border-radius: 50%;
+    border: 3px solid #e74c3c; /* Bordure Rouge */
+    box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    object-fit: cover;
+    z-index: 10; /* Au-dessus de la carte */
     cursor: grab;
-    z-index: 10; /* Au-dessus de l'image */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.5); /* Petite ombre portée pour le relief */
-    
-    /* Pour centrer le pion sur ses coordonnées exactes */
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%); /* Centré sur ses coordonnées */
+    user-select: none;
 }
 
 .pawn:active {
     cursor: grabbing;
-    border-color: #fff; /* Petit feedback visuel quand on attrape */
+    border-color: #f1c40f; /* Bordure Jaune au clic */
+    z-index: 11;
+}
+
+/* 3. Le Brouillard de Guerre */
+#fogCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20; /* Au-dessus de TOUT (Carte + Pions) */
+    pointer-events: none; /* Laisse passer les clics par défaut */
+    opacity: 0.95;
+    mix-blend-mode: multiply;
+}
+
+/* Quand on dessine, le canvas capture les clics */
+.editing-fog #fogCanvas {
+    pointer-events: auto;
 }
