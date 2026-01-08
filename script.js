@@ -3,7 +3,7 @@
 // Inputs fichiers
 const imageUpload = document.getElementById('imageUpload');
 const pawnUpload = document.getElementById('pawnUpload');
-const sceneUpload = document.getElementById('sceneUpload'); // NOUVEAU
+const sceneUpload = document.getElementById('sceneUpload');
 
 // Conteneurs de la carte
 const container = document.getElementById('imageContainer');
@@ -12,7 +12,7 @@ const viewerImage = document.getElementById('viewerImage');
 const fogCanvas = document.getElementById('fogCanvas');
 const ctx = fogCanvas.getContext('2d');
 
-// Boutons de la barre d'outils
+// Boutons
 const resetBtn = document.getElementById('resetBtn');
 const toggleFogVisBtn = document.getElementById('toggleFogVisBtn');
 const toggleFogEditBtn = document.getElementById('toggleFogEditBtn');
@@ -30,7 +30,9 @@ const closeHelpModal = document.getElementById('closeHelpModal');
 
 // --- CONSTANTES & ÉTAT ---
 const DEFAULT_PAWN_SIZE = 60;
+
 let state = {
+    // Vue
     scale: 1,
     panning: false,
     pointX: 0,
@@ -45,10 +47,16 @@ let state = {
     tool: 'reveal',
     brushSize: 60,
     
-    // Pions
-    draggingPawn: null,
+    // Pions & Souris
+    draggingPawn: null, // Ce sera désormais le Wrapper
     dragLastX: 0,
-    dragLastY: 0
+    dragLastY: 0,
+    
+    // Suivi pour Copier/Coller
+    mouseX: 0,
+    mouseY: 0,
+    hoveredWrapper: null, // Remplace hoveredPawn
+    clipboard: null
 };
 
 
@@ -65,9 +73,10 @@ resetBtn.addEventListener('click', () => {
     updateTransform();
 });
 
-// Zoom global
 container.addEventListener('wheel', function(e) {
-    if (e.target.classList.contains('pawn')) return;
+    // On ignore le zoom map si on redimensionne un pion
+    if (e.target.closest('.pawn-wrapper')) return;
+
     e.preventDefault();
     const zoomIntensity = 0.1;
     const direction = e.deltaY < 0 ? 1 : -1;
@@ -82,10 +91,9 @@ container.addEventListener('wheel', function(e) {
     updateTransform();
 }, { passive: false });
 
-// Panoramique
 container.addEventListener('mousedown', function(e) {
     if (state.fogEditing && e.button === 0) return; 
-    if (e.target.classList.contains('pawn')) return;
+    if (e.target.closest('.pawn-wrapper')) return;
     if (e.button !== 0 && e.button !== 1) return;
 
     e.preventDefault();
@@ -95,9 +103,13 @@ container.addEventListener('mousedown', function(e) {
     container.style.cursor = 'grabbing';
 });
 
+
 // --- 2. GESTION SOURIS GLOBALE ---
 
 window.addEventListener('mousemove', function(e) {
+    state.mouseX = e.clientX;
+    state.mouseY = e.clientY;
+
     // A. Pan de la Carte
     if (state.panning) {
         e.preventDefault();
@@ -107,7 +119,7 @@ window.addEventListener('mousemove', function(e) {
         return;
     }
 
-    // B. Déplacement Pion
+    // B. Déplacement Pion (Déplace le Wrapper)
     if (state.draggingPawn) {
         e.preventDefault();
         
@@ -120,9 +132,13 @@ window.addEventListener('mousemove', function(e) {
         const dx = deltaX / state.scale;
         const dy = deltaY / state.scale;
 
+        // On récupère les coords du wrapper
         const currentLeft = parseFloat(state.draggingPawn.style.left) || 0;
         const currentTop = parseFloat(state.draggingPawn.style.top) || 0;
-        const currentSize = parseFloat(state.draggingPawn.style.width) || DEFAULT_PAWN_SIZE;
+        
+        // Pour la dissipation, on a besoin de la taille de l'image interne
+        const img = state.draggingPawn.querySelector('.pawn');
+        const currentSize = parseFloat(img.style.width) || DEFAULT_PAWN_SIZE;
 
         const newX = currentLeft + dx;
         const newY = currentTop + dy;
@@ -131,7 +147,6 @@ window.addEventListener('mousemove', function(e) {
         state.draggingPawn.style.top = newY + 'px';
         
         revealFogAt(newX, newY, currentSize * 1.5);
-        
         return;
     }
     
@@ -153,11 +168,59 @@ window.addEventListener('mouseup', function() {
     }
 });
 
+
+// --- GESTION CLAVIER (Suppr, Copier, Coller) ---
+
 window.addEventListener('keydown', (e) => {
-    if ((e.key === 'Delete' || e.key === 'Backspace') && state.draggingPawn) {
-        state.draggingPawn.remove();
-        state.draggingPawn = null;
-        container.style.cursor = 'grab';
+    // 1. SUPPRIMER
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+        const target = state.draggingPawn || state.hoveredWrapper;
+        if (target) {
+            target.remove();
+            state.draggingPawn = null;
+            state.hoveredWrapper = null;
+            container.style.cursor = 'grab';
+        }
+    }
+
+    // 2. COPIER
+    if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
+        if (state.hoveredWrapper) {
+            const img = state.hoveredWrapper.querySelector('.pawn');
+            const nameTag = state.hoveredWrapper.querySelector('.pawn-name');
+            
+            state.clipboard = {
+                src: img.src,
+                width: parseFloat(img.style.width),
+                borderColor: img.style.borderColor,
+                name: nameTag.textContent
+            };
+            
+            // Feedback visuel
+            const originalBorder = img.style.border;
+            img.style.border = "5px solid white";
+            setTimeout(() => {
+                if(img) img.style.border = originalBorder;
+            }, 100);
+        }
+    }
+
+    // 3. COLLER
+    if (e.ctrlKey && (e.key === 'v' || e.key === 'V')) {
+        if (state.clipboard && viewerImage.src) {
+            const rect = viewerImage.getBoundingClientRect();
+            const x = (state.mouseX - rect.left) * (viewerImage.naturalWidth / rect.width);
+            const y = (state.mouseY - rect.top) * (viewerImage.naturalHeight / rect.height);
+            
+            createPawnElement(
+                state.clipboard.src, 
+                x, 
+                y, 
+                state.clipboard.width, 
+                state.clipboard.borderColor,
+                state.clipboard.name
+            );
+        }
     }
 });
 
@@ -167,50 +230,85 @@ window.addEventListener('keydown', (e) => {
 pawnUpload.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
+        // Extraction du nom de fichier sans extension
+        // Ex: "Gobelin.png" -> "Gobelin"
+        const fileName = file.name.split('.').slice(0, -1).join('.');
+
         const reader = new FileReader();
         reader.onload = function(event) {
             const mapWidth = viewerImage.naturalWidth || 800;
             const mapHeight = viewerImage.naturalHeight || 600;
             let x = mapWidth / 2; 
             let y = mapHeight / 2;
-            createPawnElement(event.target.result, x, y, DEFAULT_PAWN_SIZE);
+            
+            createPawnElement(
+                event.target.result, 
+                x, 
+                y, 
+                DEFAULT_PAWN_SIZE, 
+                '#2ecc71', // Couleur par défaut
+                fileName   // Nom du fichier
+            );
         };
         reader.readAsDataURL(file);
     }
     e.target.value = '';
 });
 
-function createPawnElement(src, x, y, size, color = '#2ecc71') {
+// Fonction mise à jour pour inclure le nom et le wrapper
+function createPawnElement(src, x, y, size, color = '#2ecc71', name = 'Pion') {
+    // 1. Création du Wrapper (Conteneur principal)
+    const wrapper = document.createElement('div');
+    wrapper.className = 'pawn-wrapper';
+    wrapper.style.left = x + 'px';
+    wrapper.style.top = y + 'px';
+
+    // 2. Création de la Cartouche de Nom
+    const nameTag = document.createElement('div');
+    nameTag.className = 'pawn-name';
+    nameTag.textContent = name;
+    nameTag.title = name; // Tooltip au survol si le texte est coupé
+
+    // 3. Création de l'Image
     const img = document.createElement('img');
     img.src = src;
     img.className = 'pawn';
     img.style.width = size + 'px';
     img.style.height = size + 'px';
-    img.style.left = x + 'px';
-    img.style.top = y + 'px';
     img.style.borderColor = color;
+
+    // Assemblage
+    wrapper.appendChild(nameTag);
+    wrapper.appendChild(img);
+
+    // --- EVENEMENTS ---
     
     // Palette de couleurs (Cycle)
     const colors = ['#2ecc71', '#e74c3c', '#3498db', '#f1c40f', '#9b59b6', '#ffffff'];
-    
-    // On essaie de deviner l'index actuel pour ne pas "sauter" au premier clic
-    // (Note : simple vérification, si la couleur est en RGB suite à une sauvegarde, on partira de 0)
     let colorIndex = colors.indexOf(color);
     if (colorIndex === -1) colorIndex = 0;
 
-    // 1. Drag Start
-    img.addEventListener('mousedown', function(e) {
+    // A. Drag Start (Sur le wrapper ou l'image)
+    wrapper.addEventListener('mousedown', function(e) {
         if(state.fogEditing) return;
+        // Si on clique spécifiquement sur le nom pour éditer, on ne drag pas tout de suite si c'est un double clic
+        // Mais mousedown se déclenche avant dblclick. On gère le drag ici.
         e.stopPropagation();
         e.preventDefault();
-        state.draggingPawn = img;
+        
+        state.draggingPawn = wrapper;
         state.dragLastX = e.clientX;
         state.dragLastY = e.clientY;
         container.style.cursor = 'grabbing';
     });
 
-    // 2. Redimensionnement (Molette)
-    img.addEventListener('wheel', function(e) {
+    // B. Détection Survol (Pour Copier/Supprimer)
+    wrapper.addEventListener('mouseenter', () => { state.hoveredWrapper = wrapper; });
+    wrapper.addEventListener('mouseleave', () => { state.hoveredWrapper = null; });
+
+    // C. Resize (Molette sur l'image UNIQUEMENT ou le wrapper ?)
+    // Le wrapper capture, mais on redimensionne l'IMG seulement.
+    wrapper.addEventListener('wheel', function(e) {
         e.stopPropagation();
         e.preventDefault();
         const currentSize = parseFloat(img.style.width) || DEFAULT_PAWN_SIZE;
@@ -218,21 +316,34 @@ function createPawnElement(src, x, y, size, color = '#2ecc71') {
         let newSize = currentSize + (direction * 5);
         if (newSize < 20) newSize = 20;
         if (newSize > 500) newSize = 500;
+        
         img.style.width = newSize + 'px';
         img.style.height = newSize + 'px';
     }, { passive: false });
 
-    // 3. Changement de couleur (Double clic - CYCLE)
+    // D. Changement Couleur (Double Clic sur l'IMAGE)
     img.addEventListener('dblclick', function(e) {
         e.stopPropagation();
-        e.preventDefault(); // Empêche les effets de bord (zoom/sélection)
-        
-        // On passe à la couleur suivante
+        e.preventDefault();
         colorIndex = (colorIndex + 1) % colors.length;
         img.style.borderColor = colors[colorIndex];
     });
 
-    mapWrapper.insertBefore(img, fogCanvas);
+    // E. Changement de Nom (Double Clic sur le NOM)
+    nameTag.addEventListener('dblclick', function(e) {
+        e.stopPropagation(); // Empêche la propagation
+        e.preventDefault();
+        
+        // Petit prompt natif pour modifier le nom
+        const newName = prompt("Nouveau nom du pion :", nameTag.textContent);
+        if (newName !== null && newName.trim() !== "") {
+            nameTag.textContent = newName.trim();
+            nameTag.title = newName.trim();
+        }
+    });
+
+    // Insertion dans le DOM
+    mapWrapper.insertBefore(wrapper, fogCanvas);
     revealFogAt(x, y, size * 1.5);
 }
 
@@ -259,7 +370,7 @@ function loadMapImage(src, resetAll = false) {
         fogCanvas.height = viewerImage.naturalHeight;
 
         if (resetAll) {
-            document.querySelectorAll('.pawn').forEach(p => p.remove());
+            document.querySelectorAll('.pawn-wrapper').forEach(p => p.remove());
             fillFog();
             state.scale = 1;
             state.pointX = 0;
@@ -276,11 +387,15 @@ function fillFog() {
 }
 
 function restoreFogAroundPawns() {
-    const pawns = document.querySelectorAll('.pawn');
-    pawns.forEach(pawn => {
-        const x = parseFloat(pawn.style.left);
-        const y = parseFloat(pawn.style.top);
-        const w = parseFloat(pawn.style.width);
+    // Note: on sélectionne maintenant les wrappers pour trouver la position
+    const wrappers = document.querySelectorAll('.pawn-wrapper');
+    wrappers.forEach(wrapper => {
+        const x = parseFloat(wrapper.style.left);
+        const y = parseFloat(wrapper.style.top);
+        
+        const img = wrapper.querySelector('.pawn');
+        const w = parseFloat(img.style.width);
+        
         if(!isNaN(x) && !isNaN(y)) {
              revealFogAt(x, y, w * 1.5);
         }
@@ -367,9 +482,8 @@ fogCanvas.addEventListener('mousedown', (e) => {
 });
 
 
-// --- 5. SYSTÈME DE SCÈNES (IMPORT / EXPORT FICHIERS JSON) ---
+// --- 5. SYSTÈME DE SCÈNES (JSON) ---
 
-// A. SAUVEGARDER (Télécharger)
 saveSceneBtn.addEventListener('click', () => {
     if (!viewerImage.src || viewerImage.src === window.location.href) {
         alert("Aucune carte chargée à sauvegarder.");
@@ -379,28 +493,29 @@ saveSceneBtn.addEventListener('click', () => {
     const sceneName = prompt("Nom du fichier de sauvegarde :", "MaScene");
     if (!sceneName) return;
 
-    // 1. Récupérer les pions
     const pawnsData = [];
-    document.querySelectorAll('.pawn').forEach(p => {
+    document.querySelectorAll('.pawn-wrapper').forEach(wrapper => {
+        const img = wrapper.querySelector('.pawn');
+        const nameTag = wrapper.querySelector('.pawn-name');
+        
         pawnsData.push({
-            src: p.src,
-            x: parseFloat(p.style.left),
-            y: parseFloat(p.style.top),
-            w: parseFloat(p.style.width),
-            c: p.style.borderColor
+            src: img.src,
+            x: parseFloat(wrapper.style.left),
+            y: parseFloat(wrapper.style.top),
+            w: parseFloat(img.style.width),
+            c: img.style.borderColor,
+            name: nameTag.textContent // On sauvegarde le nom
         });
     });
 
-    // 2. Créer l'objet Scène
     const sceneData = {
-        version: "1.0",
+        version: "1.1", // Petite incrémentation de version
         mapSrc: viewerImage.src,
         fogData: fogCanvas.toDataURL(),
         pawns: pawnsData,
         view: { scale: state.scale, x: state.pointX, y: state.pointY }
     };
 
-    // 3. Télécharger
     const jsonString = JSON.stringify(sceneData);
     const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -415,7 +530,6 @@ saveSceneBtn.addEventListener('click', () => {
     URL.revokeObjectURL(url);
 });
 
-// B. CHARGER (Lire Fichier)
 sceneUpload.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -435,17 +549,14 @@ sceneUpload.addEventListener('change', function(e) {
 });
 
 function restoreScene(scene) {
-    // 1. Nettoyer
-    document.querySelectorAll('.pawn').forEach(p => p.remove());
+    document.querySelectorAll('.pawn-wrapper').forEach(p => p.remove());
 
-    // 2. Charger Carte
     viewerImage.src = scene.mapSrc;
     viewerImage.onload = function() {
         mapWrapper.style.display = 'block';
         fogCanvas.width = viewerImage.naturalWidth;
         fogCanvas.height = viewerImage.naturalHeight;
 
-        // 3. Restaurer le brouillard
         const fogImg = new Image();
         fogImg.onload = function() {
             ctx.clearRect(0, 0, fogCanvas.width, fogCanvas.height);
@@ -454,14 +565,13 @@ function restoreScene(scene) {
         };
         fogImg.src = scene.fogData;
 
-        // 4. Restaurer les pions
         if (scene.pawns) {
             scene.pawns.forEach(pData => {
-                createPawnElement(pData.src, pData.x, pData.y, pData.w, pData.c);
+                // On passe le nom sauvegardé, ou une valeur par défaut si c'est une vieille sauvegarde
+                createPawnElement(pData.src, pData.x, pData.y, pData.w, pData.c, pData.name || "Pion");
             });
         }
 
-        // 5. Restaurer la vue
         if (scene.view) {
             state.scale = scene.view.scale;
             state.pointX = scene.view.x;
@@ -472,7 +582,7 @@ function restoreScene(scene) {
 }
 
 
-// --- 6. MODALE D'AIDE ---
+// --- 6. MODALES ---
 
 function openModal(modal) { modal.style.display = 'block'; }
 function closeModal(modal) { modal.style.display = 'none'; }

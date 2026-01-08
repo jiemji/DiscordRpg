@@ -19,27 +19,18 @@ body, html {
     background-color: rgba(45, 45, 45, 0.95);
     box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     z-index: 1000;
-    
-    /* Flexbox pour l'organisation Gauche / Centre / Droite */
     display: flex;
-    justify-content: space-between; /* Espace entre les groupes */
+    justify-content: space-between;
     align-items: center;
-    
     box-sizing: border-box; 
     padding-left: 10px;
     padding-right: 10px;
 }
 
-/* Groupes de boutons */
 .control-group {
     display: flex;
     align-items: center;
-    gap: 10px; /* Espace entre boutons d'un même groupe */
-}
-
-/* Ajustements spécifiques si besoin (largeur min pour le centre, etc.) */
-.control-group.center {
-    justify-content: center;
+    gap: 10px;
 }
 
 .separator {
@@ -95,7 +86,7 @@ input[type="file"] {
     display: none;
 }
 
-/* --- MODALES (Aide & Scènes) --- */
+/* Modales */
 .modal {
     display: none;
     position: fixed; 
@@ -110,13 +101,13 @@ input[type="file"] {
 
 .modal-content {
     background-color: #2c3e50;
-    margin: 5% auto; /* Un peu plus haut */
+    margin: 5% auto;
     padding: 30px;
     border: 2px solid #39ff14;
     border-radius: 10px;
     width: 80%;
     max-width: 600px;
-    max-height: 80vh; /* Scroll si trop long */
+    max-height: 80vh;
     overflow-y: auto;
     color: #ecf0f1;
     box-shadow: 0 0 30px rgba(57, 255, 20, 0.2);
@@ -151,52 +142,6 @@ input[type="file"] {
 .help-section ul { padding-left: 20px; }
 .help-section li { margin-bottom: 8px; line-height: 1.5; }
 
-/* Styles spécifiques à la liste de scènes */
-.scene-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255,255,255,0.05);
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 5px;
-    border: 1px solid transparent;
-}
-.scene-item:hover {
-    border-color: #39ff14;
-    background: rgba(57, 255, 20, 0.05);
-}
-.scene-name {
-    font-weight: bold;
-    flex-grow: 1;
-}
-.scene-actions button {
-    margin-left: 5px;
-    padding: 5px 10px;
-    cursor: pointer;
-    border: 1px solid #aaa;
-    background: transparent;
-    color: #fff;
-    border-radius: 3px;
-}
-.scene-actions button.load-btn {
-    border-color: #39ff14;
-    color: #39ff14;
-}
-.scene-actions button.load-btn:hover {
-    background-color: #39ff14;
-    color: #2c3e50;
-}
-.scene-actions button.delete-btn {
-    border-color: #e74c3c;
-    color: #e74c3c;
-}
-.scene-actions button.delete-btn:hover {
-    background-color: #e74c3c;
-    color: white;
-}
-
-
 /* Carte & Pions */
 #imageContainer {
     width: 100vw;
@@ -228,19 +173,53 @@ input[type="file"] {
     z-index: 1; 
 }
 
-.pawn {
+/* NOUVEAU : Wrapper global du pion (Position) */
+.pawn-wrapper {
     position: absolute;
+    display: flex;
+    flex-direction: column; /* Nom au dessus de l'image */
+    align-items: center;
+    z-index: 10;
+    cursor: grab;
+    transform: translate(-50%, -50%); /* Centrage sur les coordonnées */
+    user-select: none;
+}
+.pawn-wrapper:active {
+    cursor: grabbing;
+    z-index: 11;
+}
+
+/* NOUVEAU : La cartouche de nom */
+.pawn-name {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 12px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    margin-bottom: 4px; /* Espace entre nom et image */
+    
+    /* Contraintes de taille */
+    width: 60px;
+    max-width: 60px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Affiche "..." si trop long */
+    
+    pointer-events: auto; /* Permet le double clic sur le texte */
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* L'image du pion (Style ajusté) */
+.pawn {
+    /* La position absolute est retirée car gérée par le wrapper */
+    display: block;
     border-radius: 50%;
     border: 5px solid #2ecc71; 
     box-shadow: 0 0 15px rgba(0,0,0,0.8);
     object-fit: cover;
-    z-index: 10;
-    cursor: grab;
-    transform: translate(-50%, -50%);
-    user-select: none;
     transition: border-color 0.2s ease, width 0.1s ease, height 0.1s ease;
 }
-.pawn:active { cursor: grabbing; z-index: 11; }
 
 #fogCanvas {
     position: absolute;
