@@ -1,4 +1,4 @@
-/* Réinitialisation de base */
+/* --- 1. RÉINITIALISATION & BASE --- */
 body, html {
     margin: 0;
     padding: 0;
@@ -6,10 +6,10 @@ body, html {
     height: 100%;
     overflow: hidden;
     background-color: #2c3e50;
-    font-family: sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Zone de contrôle */
+/* --- 2. BARRE DE CONTRÔLE (Interface) --- */
 #controls {
     position: fixed;
     top: 0;
@@ -17,14 +17,15 @@ body, html {
     width: 100%;
     height: 60px;
     background-color: rgba(45, 45, 45, 0.95);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     z-index: 1000;
+    
+    /* Organisation Flexbox */
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-sizing: border-box; 
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 0 15px;
 }
 
 .control-group {
@@ -33,6 +34,7 @@ body, html {
     gap: 10px;
 }
 
+/* Petit séparateur vertical visuel */
 .separator {
     width: 1px;
     height: 30px;
@@ -40,11 +42,12 @@ body, html {
     margin: 0 5px;
 }
 
+/* Masquer les inputs file par défaut */
 input[type="file"] {
     display: none;
 }
 
-/* Boutons */
+/* --- 3. BOUTONS --- */
 .btn-icon {
     display: flex;
     justify-content: center;
@@ -53,7 +56,7 @@ input[type="file"] {
     height: 40px;
     padding: 5px;
     cursor: pointer;
-    color: #39ff14; 
+    color: #39ff14; /* Vert Néon */
     background-color: transparent;
     border: 2px solid #39ff14; 
     border-radius: 5px;
@@ -79,14 +82,14 @@ input[type="file"] {
 .btn-icon.active {
     background-color: #39ff14;
     color: #2c3e50;
-    box-shadow: 0 0 10px #39ff14;
+    box-shadow: 0 0 15px #39ff14;
 }
 
 .btn-icon.hidden {
     display: none;
 }
 
-/* Modales */
+/* --- 4. FENÊTRES MODALES (Aide) --- */
 .modal {
     display: none;
     position: fixed; 
@@ -140,9 +143,10 @@ input[type="file"] {
 }
 .help-section h3 { color: #39ff14; margin-top: 0; }
 .help-section ul { padding-left: 20px; }
-.help-section li { margin-bottom: 8px; line-height: 1.5; }
+.help-section li { margin-bottom: 8px; line-height: 1.4; }
 
-/* Carte & Pions */
+
+/* --- 5. CONTENEUR DE LA CARTE --- */
 #imageContainer {
     width: 100vw;
     height: 100vh;
@@ -161,7 +165,7 @@ input[type="file"] {
     top: 50%; left: 50%;
     transform-origin: center center;
     transform: translate(-50%, -50%) scale(1);
-    display: none;
+    display: none; /* Caché tant qu'aucune image n'est chargée */
     box-shadow: 0 0 50px rgba(0,0,0,0.5);
 }
 
@@ -173,15 +177,18 @@ input[type="file"] {
     z-index: 1; 
 }
 
-/* NOUVEAU : Wrapper global du pion (Position) */
+
+/* --- 6. PIONS & NOMS --- */
+
+/* Wrapper global du pion (Gère la position X,Y) */
 .pawn-wrapper {
     position: absolute;
     display: flex;
-    flex-direction: column; /* Nom au dessus de l'image */
+    flex-direction: column; /* Nom au-dessus, Image en-dessous */
     align-items: center;
     z-index: 10;
     cursor: grab;
-    transform: translate(-50%, -50%); /* Centrage sur les coordonnées */
+    transform: translate(-50%, -50%); /* Centrage exact sur les coordonnées */
     user-select: none;
 }
 .pawn-wrapper:active {
@@ -189,38 +196,39 @@ input[type="file"] {
     z-index: 11;
 }
 
-/* NOUVEAU : La cartouche de nom */
+/* La cartouche de nom */
 .pawn-name {
     background-color: rgba(0, 0, 0, 0.8);
     color: white;
     font-size: 12px;
     padding: 2px 4px;
     border-radius: 4px;
-    margin-bottom: 4px; /* Espace entre nom et image */
+    margin-bottom: 4px;
     
-    /* Contraintes de taille */
     width: 60px;
     max-width: 60px;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* Affiche "..." si trop long */
+    text-overflow: ellipsis;
     
-    pointer-events: auto; /* Permet le double clic sur le texte */
+    pointer-events: auto; /* Permet le double-clic sur le texte */
     border: 1px solid rgba(255,255,255,0.3);
 }
 
-/* L'image du pion (Style ajusté) */
+/* L'image du pion */
 .pawn {
-    /* La position absolute est retirée car gérée par le wrapper */
     display: block;
     border-radius: 50%;
     border: 5px solid #2ecc71; 
     box-shadow: 0 0 15px rgba(0,0,0,0.8);
     object-fit: cover;
-    transition: border-color 0.2s ease, width 0.1s ease, height 0.1s ease;
+    transition: border-color 0.2s ease;
+    /* width et height sont gérés par le JS via style inline */
 }
 
+
+/* --- 7. BROUILLARD DE GUERRE --- */
 #fogCanvas {
     position: absolute;
     top: 0; left: 0;
@@ -228,6 +236,92 @@ input[type="file"] {
     z-index: 20;
     pointer-events: none;
     opacity: 0.95;
-    mix-blend-mode: multiply;
+    mix-blend-mode: multiply; /* Meilleure incrustation sur la carte */
 }
+/* Le canvas redevient interactif quand on est en mode édition */
 .editing-fog #fogCanvas { pointer-events: auto; }
+
+
+/* --- 8. EFFETS VISUELS & VECTORIELS (SVG) --- */
+
+#effectsLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 25; /* Au-dessus du brouillard */
+    pointer-events: none; /* Important : laisse passer les clics */
+    overflow: visible;
+}
+
+/* Outil Mesure (Shift + Drag) */
+.measure-line {
+    stroke: white;
+    stroke-width: 4px;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 3px black); /* Ombre pour lisibilité */
+}
+
+.measure-text-bg {
+    fill: white;
+    stroke: black;
+    stroke-width: 1px;
+}
+
+.measure-text {
+    fill: black;
+    font-family: sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+/* Outil Trait de Feu (Ctrl + Drag) */
+.fire-line {
+    stroke: #ff4500; /* OrangeRed */
+    stroke-width: 6px;
+    stroke-linecap: round;
+    stroke-dasharray: 10, 5; /* Pointillés */
+    animation: firePulse 0.5s infinite alternate;
+    filter: drop-shadow(0 0 5px #ffd700) drop-shadow(0 0 10px #ff0000);
+}
+
+@keyframes firePulse {
+    from { stroke-width: 6px; opacity: 1; }
+    to { stroke-width: 8px; opacity: 0.8; }
+}
+
+/* Outil Explosion (Alt + Clic) - Div crée dynamiquement */
+.explosion-effect {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    /* Dégradé radial Jaune -> Orange -> Rouge transparent */
+    background: radial-gradient(circle, rgba(255,255,0,1) 0%, rgba(255,140,0,1) 40%, rgba(139,0,0,0) 70%);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 30;
+    animation: explode 3s ease-out forwards;
+    box-shadow: 0 0 20px rgba(255, 69, 0, 0.8);
+}
+
+@keyframes explode {
+    0% {
+        width: 10px;
+        height: 10px;
+        opacity: 1;
+    }
+    10% {
+        width: 150px;
+        height: 150px;
+        opacity: 0.9;
+    }
+    100% {
+        width: 200px;
+        height: 200px;
+        opacity: 0;
+    }
+}

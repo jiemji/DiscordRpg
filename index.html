@@ -109,20 +109,12 @@
             <h2>Guide des Contrôles</h2>
             
             <div class="help-section">
-                <h3>Gestion de Scènes (Fichiers)</h3>
+                <h3>Outils Tactiques (Raccourcis)</h3>
+                <p>Maintenez la touche indiquée pendant que vous utilisez la souris :</p>
                 <ul>
-                    <li><strong>Sauvegarder :</strong> Télécharge un fichier <code>.json</code> contenant toute la scène sur votre ordinateur.</li>
-                    <li><strong>Charger :</strong> Ouvre l'explorateur pour choisir un fichier <code>.json</code> précédemment sauvegardé.</li>
-                    <li><strong>Nouvelle Carte :</strong> Charge une image et efface tous les pions existants.</li>
-                </ul>
-            </div>
-
-            <div class="help-section">
-                <h3>Navigation</h3>
-                <ul>
-                    <li><strong>Bouger la carte :</strong> Clic Gauche maintenu + Glisser</li>
-                    <li><strong>Zoomer :</strong> Molette de la souris</li>
-                    <li><strong>Reset Vue :</strong> Réinitialise le zoom et la position.</li>
+                    <li><strong>Mesurer (Règle) :</strong> Maintenir <code>Shift</code> + Clic Gauche + Glisser. (1m = 60px)</li>
+                    <li><strong>Trait Magique :</strong> Maintenir <code>Ctrl</code> + Clic Gauche + Glisser. (Effet temporaire 5s)</li>
+                    <li><strong>Explosion :</strong> Maintenir <code>Alt</code> + Clic Gauche sur la zone cible.</li>
                 </ul>
             </div>
 
@@ -133,17 +125,27 @@
                     <li><strong>Redimensionner :</strong> Tenir le Clic Gauche sur le pion + Molette</li>
                     <li><strong>Supprimer :</strong> Tenir le Clic Gauche sur le pion + Touche <code>Suppr</code></li>
                     <li><strong>Changer Couleur :</strong> Double Clic sur l'image du pion</li>
-                    <li><strong>Nom du pion :</strong> Double Clic sur le nom pour le modifier</li>
-                    <li><strong>Copier/Coller :</strong> Ctrl+C / Ctrl+V sur le pion</li>
+                    <li><strong>Renommer :</strong> Double Clic sur l'étiquette du nom</li>
+                    <li><strong>Copier/Coller :</strong> <code>Ctrl+C</code> (survoler le pion) / <code>Ctrl+V</code> (coller sous la souris)</li>
                 </ul>
             </div>
 
             <div class="help-section">
-                <h3>Brouillard de Guerre</h3>
+                <h3>Gestion de Scènes</h3>
                 <ul>
-                    <li><strong>Activer :</strong> Bouton Œil</li>
-                    <li><strong>Dessiner :</strong> Mode Édition (Stylo) + Clic Gauche</li>
-                    <li><strong>Dissipation Auto :</strong> Le brouillard se dissipe automatiquement autour des pions.</li>
+                    <li><strong>Sauvegarder :</strong> Télécharge un fichier <code>.json</code> complet (carte + pions + brouillard).</li>
+                    <li><strong>Charger :</strong> Ouvre un fichier <code>.json</code> pour restaurer la partie.</li>
+                    <li><strong>Nouvelle Carte :</strong> Charge une image et réinitialise tout.</li>
+                </ul>
+            </div>
+            
+             <div class="help-section">
+                <h3>Navigation & Brouillard</h3>
+                <ul>
+                    <li><strong>Bouger la carte :</strong> Clic Gauche maintenu + Glisser (sur le fond)</li>
+                    <li><strong>Zoomer :</strong> Molette de la souris</li>
+                    <li><strong>Dessiner Brouillard :</strong> Activer le mode Édition (Stylo) + Clic Gauche</li>
+                    <li><strong>Brouillard Auto :</strong> Se dissipe quand on déplace un pion.</li>
                 </ul>
             </div>
         </div>
@@ -153,6 +155,9 @@
         <div id="mapWrapper">
             <img id="viewerImage" src="" alt="" draggable="false">
             <canvas id="fogCanvas"></canvas>
+            
+            <svg id="effectsLayer"></svg>
+            
         </div>
     </div>
 
