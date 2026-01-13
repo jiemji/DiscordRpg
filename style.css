@@ -184,7 +184,7 @@ input[type="file"] {
 .pawn-wrapper {
     position: absolute;
     display: flex;
-    flex-direction: column; /* Nom au-dessus, Image en-dessous */
+    flex-direction: column; /* Nom au-dessus, Image au milieu, Compteur en bas */
     align-items: center;
     z-index: 10;
     cursor: grab;
@@ -201,12 +201,13 @@ input[type="file"] {
     background-color: rgba(0, 0, 0, 0.8);
     color: white;
     font-size: 12px;
-    padding: 2px 4px;
-    border-radius: 4px;
+    padding: 2px 8px;
+    border-radius: 12px; /* Arrondi augmenté */
     margin-bottom: 4px;
     
-    width: 60px;
-    max-width: 60px;
+    width: auto;
+    min-width: 40px;
+    max-width: 100px;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
@@ -227,8 +228,45 @@ input[type="file"] {
     /* width et height sont gérés par le JS via style inline */
 }
 
+/* --- 7. NOUVEAU : Cartouche Compteur (PV) --- */
+.pawn-tracker {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espace entre les boutons et le chiffre */
+    
+    margin-top: 4px; /* Espace sous le pion */
+    padding: 2px 8px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px; /* Fortement arrondi */
+    color: white;
+    font-size: 14px;
+    pointer-events: auto; /* Pour cliquer sur les boutons */
+}
 
-/* --- 7. BROUILLARD DE GUERRE --- */
+.tracker-btn {
+    cursor: pointer;
+    font-weight: bold;
+    color: #ccc;
+    user-select: none;
+    transition: color 0.2s;
+    width: 15px;
+    text-align: center;
+}
+
+.tracker-btn:hover {
+    color: #39ff14;
+    transform: scale(1.2);
+}
+
+.tracker-val {
+    min-width: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+
+/* --- 8. BROUILLARD DE GUERRE --- */
 #fogCanvas {
     position: absolute;
     top: 0; left: 0;
@@ -242,7 +280,7 @@ input[type="file"] {
 .editing-fog #fogCanvas { pointer-events: auto; }
 
 
-/* --- 8. EFFETS VISUELS & VECTORIELS (SVG) --- */
+/* --- 9. EFFETS VISUELS & VECTORIELS (SVG) --- */
 
 #effectsLayer {
     position: absolute;

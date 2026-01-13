@@ -44,7 +44,7 @@ let state = {
     fogVisible: true,
     fogEditing: false,
     isDrawing: false,
-    tool: 'reveal',
+    tool: 'reveal', // 'reveal' (Gomme) ou 'hide' (Pinceau)
     brushSize: 60,
     
     // Pions & Souris
@@ -62,12 +62,12 @@ let state = {
     isMeasuring: false,
     measureStartX: 0,
     measureStartY: 0,
-    currentMeasureGroup: null, // Groupe SVG (Ligne + Texte)
+    currentMeasureGroup: null, 
 
     isCastingSpell: false,
     spellStartX: 0,
     spellStartY: 0,
-    currentSpellLine: null // Ligne SVG
+    currentSpellLine: null
 };
 
 
@@ -99,7 +99,6 @@ container.addEventListener('wheel', function(e) {
     updateTransform();
 }, { passive: false });
 
-// Utilitaire pour convertir les coordonnées écran -> carte
 function getMapCoordinates(clientX, clientY) {
     const rect = viewerImage.getBoundingClientRect();
     const scaleX = viewerImage.naturalWidth / rect.width;
@@ -118,7 +117,7 @@ container.addEventListener('mousedown', function(e) {
 
     const coords = getMapCoordinates(e.clientX, e.clientY);
 
-    // 1. EXPLOSION (Alt + Clic) - Prioritaire
+    // 1. EXPLOSION (Alt + Clic)
     if (e.altKey && e.button === 0) {
         triggerExplosion(coords.x, coords.y);
         return;
@@ -130,7 +129,7 @@ container.addEventListener('mousedown', function(e) {
         state.measureStartX = coords.x;
         state.measureStartY = coords.y;
         createMeasureVisuals(coords.x, coords.y);
-        e.preventDefault(); // Empêche la sélection de texte
+        e.preventDefault(); 
         return;
     }
 
@@ -144,11 +143,9 @@ container.addEventListener('mousedown', function(e) {
         return;
     }
 
-    // 4. Dessin Brouillard (Seulement si mode édition ACTIF et PAS de touches spéciales)
+    // 4. Dessin Brouillard
     if (state.fogEditing && e.button === 0) {
-        state.isDrawing = true;
-        drawOnCanvas(e.clientX, e.clientY);
-        return;
+        return; 
     }
 
     // 5. Interaction Pions
@@ -167,19 +164,16 @@ window.addEventListener('mousemove', function(e) {
     state.mouseY = e.clientY;
     const coords = getMapCoordinates(e.clientX, e.clientY);
 
-    // A. Mesure en cours
     if (state.isMeasuring) {
         updateMeasureVisuals(coords.x, coords.y);
         return;
     }
 
-    // B. Sort en cours
     if (state.isCastingSpell) {
         updateSpellVisual(coords.x, coords.y);
         return;
     }
 
-    // C. Panoramique
     if (state.panning) {
         e.preventDefault();
         state.pointX = e.clientX - state.startX;
@@ -188,7 +182,6 @@ window.addEventListener('mousemove', function(e) {
         return;
     }
 
-    // D. Drag Pion
     if (state.draggingPawn) {
         e.preventDefault();
         const deltaX = e.clientX - state.dragLastX;
@@ -197,19 +190,23 @@ window.addEventListener('mousemove', function(e) {
         state.dragLastY = e.clientY;
         const dx = deltaX / state.scale;
         const dy = deltaY / state.scale;
+        
         const currentLeft = parseFloat(state.draggingPawn.style.left) || 0;
         const currentTop = parseFloat(state.draggingPawn.style.top) || 0;
+        
         const img = state.draggingPawn.querySelector('.pawn');
         const currentSize = parseFloat(img.style.width) || DEFAULT_PAWN_SIZE;
+        
         const newX = currentLeft + dx;
         const newY = currentTop + dy;
+        
         state.draggingPawn.style.left = newX + 'px';
         state.draggingPawn.style.top = newY + 'px';
+        
         revealFogAt(newX, newY, currentSize * 1.5);
         return;
     }
     
-    // E. Dessin Brouillard
     if (state.isDrawing && state.fogEditing) {
         drawOnCanvas(e.clientX, e.clientY);
     }
@@ -220,7 +217,6 @@ window.addEventListener('mouseup', function() {
     state.draggingPawn = null;
     state.isDrawing = false;
     
-    // Fin Mesure (Suppression immédiate)
     if (state.isMeasuring) {
         state.isMeasuring = false;
         if (state.currentMeasureGroup) {
@@ -229,7 +225,6 @@ window.addEventListener('mouseup', function() {
         }
     }
 
-    // Fin Sort (Persistance 5s)
     if (state.isCastingSpell) {
         state.isCastingSpell = false;
         const lineToKeep = state.currentSpellLine;
@@ -253,7 +248,6 @@ function triggerExplosion(x, y) {
     explosion.style.left = x + 'px';
     explosion.style.top = y + 'px';
     mapWrapper.appendChild(explosion);
-    // Nettoyage après l'animation (3s)
     setTimeout(() => { explosion.remove(); }, 3000);
 }
 
@@ -293,12 +287,10 @@ function updateMeasureVisuals(currentX, currentY) {
 
     text.textContent = distMeters + " m";
     
-    // Position du texte (Milieu du segment)
     const midX = state.measureStartX + dx / 2;
     const midY = state.measureStartY + dy / 2;
     text.setAttribute("x", midX); text.setAttribute("y", midY);
 
-    // Fond du texte
     const textWidth = 40 + (distMeters.length * 8); 
     const textHeight = 24;
     rect.setAttribute("x", midX - textWidth / 2);
@@ -323,10 +315,9 @@ function updateSpellVisual(currentX, currentY) {
 }
 
 
-// --- 4. RESTE DU CODE (Pions, Clavier, Chargement...) ---
+// --- 4. GESTION DES PIONS & CLAVIER ---
 
 window.addEventListener('keydown', (e) => {
-    // Supprimer
     if (e.key === 'Delete' || e.key === 'Backspace') {
         const target = state.draggingPawn || state.hoveredWrapper;
         if (target) {
@@ -336,23 +327,24 @@ window.addEventListener('keydown', (e) => {
             container.style.cursor = 'grab';
         }
     }
-    // Copier
     if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
         if (state.hoveredWrapper) {
             const img = state.hoveredWrapper.querySelector('.pawn');
             const nameTag = state.hoveredWrapper.querySelector('.pawn-name');
+            const trackerVal = state.hoveredWrapper.querySelector('.tracker-val');
+            
             state.clipboard = {
                 src: img.src,
                 width: parseFloat(img.style.width),
                 borderColor: img.style.borderColor,
-                name: nameTag.textContent
+                name: nameTag.textContent,
+                value: trackerVal ? parseInt(trackerVal.textContent) : 0
             };
             const originalBorder = img.style.border;
             img.style.border = "5px solid white";
             setTimeout(() => { if(img) img.style.border = originalBorder; }, 100);
         }
     }
-    // Coller
     if (e.ctrlKey && (e.key === 'v' || e.key === 'V')) {
         if (state.clipboard && viewerImage.src) {
             const rect = viewerImage.getBoundingClientRect();
@@ -364,7 +356,8 @@ window.addEventListener('keydown', (e) => {
                 state.clipboard.src, x, y, 
                 state.clipboard.width, 
                 state.clipboard.borderColor,
-                state.clipboard.name
+                state.clipboard.name,
+                state.clipboard.value
             );
         }
     }
@@ -378,14 +371,14 @@ pawnUpload.addEventListener('change', function(e) {
         reader.onload = function(event) {
             const mapWidth = viewerImage.naturalWidth || 800;
             const mapHeight = viewerImage.naturalHeight || 600;
-            createPawnElement(event.target.result, mapWidth/2, mapHeight/2, DEFAULT_PAWN_SIZE, '#2ecc71', fileName);
+            createPawnElement(event.target.result, mapWidth/2, mapHeight/2, DEFAULT_PAWN_SIZE, '#2ecc71', fileName, 0);
         };
         reader.readAsDataURL(file);
     }
     e.target.value = '';
 });
 
-function createPawnElement(src, x, y, size, color = '#2ecc71', name = 'Pion') {
+function createPawnElement(src, x, y, size, color = '#2ecc71', name = 'Pion', value = 0) {
     const wrapper = document.createElement('div');
     wrapper.className = 'pawn-wrapper';
     wrapper.style.left = x + 'px';
@@ -403,8 +396,43 @@ function createPawnElement(src, x, y, size, color = '#2ecc71', name = 'Pion') {
     img.style.height = size + 'px';
     img.style.borderColor = color;
 
+    const tracker = document.createElement('div');
+    tracker.className = 'pawn-tracker';
+
+    const plusBtn = document.createElement('span');
+    plusBtn.className = 'tracker-btn';
+    plusBtn.textContent = '+';
+
+    const valDisplay = document.createElement('span');
+    valDisplay.className = 'tracker-val';
+    valDisplay.textContent = value;
+
+    const minusBtn = document.createElement('span');
+    minusBtn.className = 'tracker-btn';
+    minusBtn.textContent = '-';
+
     wrapper.appendChild(nameTag);
     wrapper.appendChild(img);
+    
+    // --- MODIFICATION ICI : Ordre inversé (Moins | Valeur | Plus) ---
+    tracker.appendChild(minusBtn);
+    tracker.appendChild(valDisplay);
+    tracker.appendChild(plusBtn);
+    // ----------------------------------------------------------------
+    
+    wrapper.appendChild(tracker);
+
+    plusBtn.addEventListener('mousedown', (e) => {
+        e.stopPropagation(); 
+        let v = parseInt(valDisplay.textContent);
+        valDisplay.textContent = v + 1;
+    });
+
+    minusBtn.addEventListener('mousedown', (e) => {
+        e.stopPropagation(); 
+        let v = parseInt(valDisplay.textContent);
+        valDisplay.textContent = v - 1;
+    });
 
     const colors = ['#2ecc71', '#e74c3c', '#3498db', '#f1c40f', '#9b59b6', '#ffffff'];
     let colorIndex = colors.indexOf(color);
@@ -412,8 +440,6 @@ function createPawnElement(src, x, y, size, color = '#2ecc71', name = 'Pion') {
 
     wrapper.addEventListener('mousedown', function(e) {
         if(state.fogEditing) return;
-        
-        // Empêcher le drag si on veut faire un effet (Ctrl/Shift/Alt) sur le pion
         if(e.shiftKey || e.ctrlKey || e.altKey) return;
 
         e.stopPropagation();
@@ -459,6 +485,8 @@ function createPawnElement(src, x, y, size, color = '#2ecc71', name = 'Pion') {
     revealFogAt(x, y, size * 1.5);
 }
 
+// --- 5. CHARGEMENT & BROUILLARD ---
+
 imageUpload.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
@@ -475,10 +503,7 @@ function loadMapImage(src, resetAll = false) {
     viewerImage.src = src;
     viewerImage.onload = function() {
         mapWrapper.style.display = 'block';
-        
-        // Configuration SVG
         effectsLayer.setAttribute("viewBox", `0 0 ${viewerImage.naturalWidth} ${viewerImage.naturalHeight}`);
-        
         fogCanvas.width = viewerImage.naturalWidth;
         fogCanvas.height = viewerImage.naturalHeight;
 
@@ -511,12 +536,14 @@ function restoreFogAroundPawns() {
 }
 
 function revealFogAt(x, y, radius) {
+    // Force temporairement le mode "Gomme"
+    const prevOp = ctx.globalCompositeOperation;
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = 'black'; // La couleur importe peu en mode destination-out
     ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalCompositeOperation = prevOp !== 'destination-out' ? 'source-over' : 'destination-out';
 }
 
 toggleFogVisBtn.addEventListener('click', () => {
@@ -535,7 +562,17 @@ toggleFogEditBtn.addEventListener('click', () => {
         fogRevealBtn.classList.remove('hidden');
         fogHideBtn.classList.remove('hidden');
         fogResetBtn.classList.remove('hidden');
+        
+        // Active l'outil Gomme par défaut
         setFogTool('reveal');
+        
+        // Force l'affichage du brouillard si masqué
+        if (!state.fogVisible) {
+            state.fogVisible = true;
+            fogCanvas.style.display = 'block';
+            toggleFogVisBtn.classList.add('active');
+        }
+
     } else {
         mapWrapper.classList.remove('editing-fog');
         container.classList.remove('drawing-mode');
@@ -555,26 +592,39 @@ fogRevealBtn.addEventListener('click', () => setFogTool('reveal'));
 fogHideBtn.addEventListener('click', () => setFogTool('hide'));
 fogResetBtn.addEventListener('click', () => { fillFog(); restoreFogAroundPawns(); });
 
+
 function drawOnCanvas(clientX, clientY) {
     const rect = fogCanvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
     const x = (clientX - rect.left) * (fogCanvas.width / rect.width);
     const y = (clientY - rect.top) * (fogCanvas.height / rect.height);
+    
+    ctx.save();
     ctx.beginPath();
     ctx.arc(x, y, state.brushSize, 0, Math.PI * 2);
+
     if (state.tool === 'reveal') {
         ctx.globalCompositeOperation = 'destination-out';
-        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.fillStyle = 'black';
     } else {
         ctx.globalCompositeOperation = 'source-over';
         ctx.fillStyle = 'black';
     }
+    
     ctx.fill();
+    ctx.restore();
 }
+
 fogCanvas.addEventListener('mousedown', (e) => {
     if (!state.fogEditing || e.button !== 0) return;
+    
+    e.preventDefault();
     state.isDrawing = true;
     drawOnCanvas(e.clientX, e.clientY);
 });
+
+// --- 6. SAUVEGARDE ---
 
 saveSceneBtn.addEventListener('click', () => {
     if (!viewerImage.src || viewerImage.src === window.location.href) { alert("Aucune carte."); return; }
@@ -583,17 +633,20 @@ saveSceneBtn.addEventListener('click', () => {
     document.querySelectorAll('.pawn-wrapper').forEach(wrapper => {
         const img = wrapper.querySelector('.pawn');
         const nameTag = wrapper.querySelector('.pawn-name');
+        const trackerVal = wrapper.querySelector('.tracker-val');
+        
         pawnsData.push({
             src: img.src,
             x: parseFloat(wrapper.style.left),
             y: parseFloat(wrapper.style.top),
             w: parseFloat(img.style.width),
             c: img.style.borderColor,
-            name: nameTag.textContent
+            name: nameTag.textContent,
+            val: trackerVal ? parseInt(trackerVal.textContent) : 0
         });
     });
     const sceneData = {
-        version: "1.1",
+        version: "1.2",
         mapSrc: viewerImage.src,
         fogData: fogCanvas.toDataURL(),
         pawns: pawnsData,
@@ -631,7 +684,11 @@ function restoreScene(scene) {
             ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(fogImg, 0, 0);
         };
         fogImg.src = scene.fogData;
-        if (scene.pawns) scene.pawns.forEach(p => createPawnElement(p.src, p.x, p.y, p.w, p.c, p.name || "Pion"));
+        if (scene.pawns) {
+            scene.pawns.forEach(p => {
+                createPawnElement(p.src, p.x, p.y, p.w, p.c, p.name || "Pion", p.val || 0);
+            });
+        }
         if (scene.view) { state.scale = scene.view.scale; state.pointX = scene.view.x; state.pointY = scene.view.y; updateTransform(); }
     }
 }
